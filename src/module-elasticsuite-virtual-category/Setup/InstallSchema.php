@@ -58,6 +58,8 @@ class InstallSchema implements InstallSchemaInterface
 
         $this->virtualCategorySetup->createPositionTable($setup);
 
+        $this->virtualCategorySetup->createVirtualCategoriesTable($setup);
+
         $setup->endSetup();
     }
 }

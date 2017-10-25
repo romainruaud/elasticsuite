@@ -12,8 +12,11 @@
  */
 namespace Smile\ElasticsuiteVirtualCategory\Setup;
 
+use Magento\Catalog\Api\Data\CategoryInterface;
 use Magento\Catalog\Model\Category;
 use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\EntityManager\MetadataPool;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 
 /**
@@ -31,13 +34,20 @@ class VirtualCategorySetup
     private $eavConfig;
 
     /**
+     * @var \Magento\Framework\EntityManager\MetadataPool
+     */
+    private $metadataPool;
+
+    /**
      * VirtualCategorySetup constructor.
      *
-     * @param \Magento\Eav\Model\Config $eavConfig EAV Config.
+     * @param \Magento\Eav\Model\Config $eavConfig    EAV Config.
+     * @param MetadataPool              $metadataPool Metadata Pool.
      */
-    public function __construct(\Magento\Eav\Model\Config $eavConfig)
+    public function __construct(\Magento\Eav\Model\Config $eavConfig, MetadataPool $metadataPool)
     {
-        $this->eavConfig = $eavConfig;
+        $this->eavConfig    = $eavConfig;
+        $this->metadataPool = $metadataPool;
     }
 
     /**
@@ -204,5 +214,67 @@ class VirtualCategorySetup
             ->setComment('Catalog product position for the virtual categories module.');
 
         $setup->getConnection()->createTable($table);
+    }
+
+    /**
+     * Create table containing virtual categories rules.
+     *
+     * @since 2.4.0
+     *
+     * @param SchemaSetupInterface $setup Schema Setup Interface
+     */
+    public function createVirtualCategoriesTable(SchemaSetupInterface $setup)
+    {
+        /**
+         * Create table 'smile_virtualcategory_catalog_category_virtual_rule'
+         */
+        $tableName = 'smile_virtualcategory_catalog_category_virtual_rule';
+
+        $linkField     = $this->metadataPool->getMetadata(CategoryInterface::class)->getLinkField();
+
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable($tableName))
+            ->addColumn(
+                $linkField,
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                null,
+                ['unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Category identifier'
+            )
+            ->addColumn(
+                'store_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
+                null,
+                ['unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Store ID'
+            )
+            ->addColumn(
+                'virtual_rule',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                null,
+                ['nullable' => true, 'default' => null],
+                'Position'
+            )
+            ->addIndex($setup->getIdxName($tableName, [$linkField]), [$linkField])
+            ->addForeignKey(
+                $setup->getFkName($tableName, $linkField, 'catalog_category_entity', $linkField),
+                $linkField,
+                $setup->getTable('catalog_category_entity'),
+                $linkField,
+                \Magento\Framework\DB\Ddl\Table::ACTION_CASCADE
+            )
+            ->setComment('Table containing rules for virtual categories.');
+
+        $setup->getConnection()->createTable($table);
+    }
+
+    /**
+     * Migrate virtual rules which were previously stored as
+     *
+     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $setup Module Data Setup
+     */
+    public function migrateVirtualCategoriesData(ModuleDataSetupInterface $setup)
+    {
+
     }
 }
