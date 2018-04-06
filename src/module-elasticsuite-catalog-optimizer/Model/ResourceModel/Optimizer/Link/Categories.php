@@ -99,6 +99,29 @@ class Categories extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
+     * Retrieve applicable optimizer Ids for a given category Id.
+     *
+     * @param int $categoryId The category Id
+     *
+     * @return array
+     */
+    public function getApplicableOptimizerIdsByCategoryId($categoryId)
+    {
+        $select = $this->getConnection()
+            ->select()
+            ->from(['main_table' => $this->getMainTable()], [])
+            ->joinInner(
+                ['osc' => $this->getTable(OptimizerInterface::TABLE_NAME_SEARCH_CONTAINER)],
+                "osc.optimizer_id = main_table.optimizer_id OR osc.apply_to = 0",
+                [OptimizerInterface::OPTIMIZER_ID]
+            )
+            ->where($this->getConnection()->quoteInto("main_table.{$this->_idFieldName} = ?", (int) $categoryId))
+            ->group(OptimizerInterface::OPTIMIZER_ID);
+
+        return $this->getConnection()->fetchCol($select);
+    }
+
+    /**
      * Resource initialization
      *
      * @SuppressWarnings(PHPMD.CamelCaseMethodName) Method is inherited.

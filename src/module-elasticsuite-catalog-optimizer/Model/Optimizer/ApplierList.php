@@ -16,6 +16,7 @@ use Magento\Framework\App\CacheInterface;
 use Smile\ElasticsuiteCatalogOptimizer\Api\Data\OptimizerInterface;
 use Smile\ElasticsuiteCatalogOptimizer\Model\Optimizer\Collection\ProviderInterface;
 use Smile\ElasticsuiteCatalogOptimizer\Model\ResourceModel\Optimizer\Collection;
+use Smile\ElasticsuiteCore\Api\Search\ContextInterface;
 use Smile\ElasticsuiteCore\Api\Search\Request\ContainerConfigurationInterface;
 use Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory;
 use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
@@ -62,22 +63,38 @@ class ApplierList
     private $functions = [];
 
     /**
+     * @var \Smile\ElasticsuiteCatalogOptimizer\Model\Optimizer\RelevantOptimizerList
+     */
+    private $relevantOptimizers;
+
+    /**
+     * @var \Smile\ElasticsuiteCore\Api\Search\ContextInterface
+     */
+    private $searchContext;
+
+    /**
      * Constructor.
      *
-     * @param QueryFactory       $queryFactory       Search request query factory.
-     * @param ProviderInterface  $collectionProvider Optimizer Collection Provider
-     * @param CacheInterface     $cache              Application cache.
-     * @param ApplierInterface[] $appliers           Appliers interface.
+     * @param QueryFactory          $queryFactory          Search request query factory.
+     * @param ProviderInterface     $collectionProvider    Optimizer Collection Provider
+     * @param CacheInterface        $cache                 Application cache.
+     * @param RelevantOptimizerList $relevantOptimizerList Relevant Optimizers list.
+     * @param ContextInterface      $contextInterface      Search Context.
+     * @param ApplierInterface[]    $appliers              Appliers interface.
      */
     public function __construct(
         QueryFactory $queryFactory,
         ProviderInterface $collectionProvider,
         CacheInterface $cache,
+        RelevantOptimizerList $relevantOptimizerList,
+        ContextInterface $contextInterface,
         array $appliers = []
     ) {
         $this->queryFactory       = $queryFactory;
         $this->collectionProvider = $collectionProvider;
         $this->cache              = $cache;
+        $this->relevantOptimizers = $relevantOptimizerList;
+        $this->searchContext      = $contextInterface;
         $this->appliers           = $appliers;
     }
 
@@ -92,6 +109,7 @@ class ApplierList
     public function applyOptimizers(ContainerConfigurationInterface $containerConfiguration, QueryInterface $query)
     {
         $functions = $this->getFunctions($containerConfiguration);
+        $functions = $this->relevantOptimizers->getRelevantOptimizers($this->searchContext, $functions);
 
         return $this->applyFunctions($query, $functions);
     }
@@ -168,7 +186,7 @@ class ApplierList
             $function = $this->getFunction($containerConfiguration, $optimizer);
 
             if ($function !== null) {
-                $functions[] = $function;
+                $functions[$optimizer->getId()] = $function;
             }
         }
 

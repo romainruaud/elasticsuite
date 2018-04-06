@@ -78,6 +78,29 @@ class SearchTerms extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
+     * Retrieve applicable optimizer Ids for a given query Id.
+     *
+     * @param int $queryId The query Id
+     *
+     * @return array
+     */
+    public function getApplicableOptimizerIdsByQueryId($queryId)
+    {
+        $select = $this->getConnection()
+            ->select()
+            ->from(['main_table' => $this->getMainTable()], [])
+            ->joinInner(
+                ['osc' => $this->getTable(OptimizerInterface::TABLE_NAME_SEARCH_CONTAINER)],
+                "osc.optimizer_id = main_table.optimizer_id OR osc.apply_to = 0",
+                [OptimizerInterface::OPTIMIZER_ID]
+            )
+            ->where($this->getConnection()->quoteInto("main_table.{$this->_idFieldName} = ?", (int) $queryId))
+            ->group(OptimizerInterface::OPTIMIZER_ID);
+
+        return $this->getConnection()->fetchCol($select);
+    }
+
+    /**
      * Resource initialization
      *
      * @SuppressWarnings(PHPMD.CamelCaseMethodName) Method is inherited.
