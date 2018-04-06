@@ -73,7 +73,6 @@ class Replace implements ProviderInterface
                 'main_table.' . OptimizerInterface::OPTIMIZER_ID,
                 ['neq' => $this->optimizer->getId()]
             );
-            $this->optimizer->setId(null);
         }
 
         $collection->addItem($this->optimizer);

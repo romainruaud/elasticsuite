@@ -16,11 +16,13 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\CategoryInterface;
-use Magento\Framework\Json\Helper\Data as JsonHelper;
+use Magento\Framework\Serialize\Serializer\Json as JsonHelper;
+use Magento\Search\Model\QueryFactory;
 use Magento\Store\Model\Store;
 use Smile\ElasticsuiteCatalogOptimizer\Api\Data\OptimizerInterface;
 use Smile\ElasticsuiteCatalogOptimizer\Api\Data\OptimizerInterfaceFactory;
 use Smile\ElasticsuiteCatalogOptimizer\Model\Optimizer\PreviewFactory;
+use Smile\ElasticsuiteCore\Api\Search\ContextInterface;
 use Smile\ElasticsuiteCore\Api\Search\Request\ContainerConfigurationInterface;
 use Smile\ElasticsuiteCore\Search\Request\ContainerConfigurationFactory;
 
@@ -39,7 +41,7 @@ class Preview extends Action
     private $previewModelFactory;
 
     /**
-     * @var \Magento\Framework\Json\Helper\Data
+     * @var \Magento\Framework\Serialize\Serializer\Json
      */
     private $jsonHelper;
 
@@ -59,6 +61,16 @@ class Preview extends Action
     private $containerConfigFactory;
 
     /**
+     * @var \Smile\ElasticsuiteCore\Api\Search\ContextInterface
+     */
+    private $searchContext;
+
+    /**
+     * @var \Magento\Search\Model\QueryFactory
+     */
+    private $queryFactory;
+
+    /**
      * Constructor.
      *
      * @param Context                       $context                Controller  context.
@@ -67,6 +79,8 @@ class Preview extends Action
      * @param OptimizerInterfaceFactory     $optimizerFactory       OptimzerFactory
      * @param ContainerConfigurationFactory $containerConfigFactory Container Configuration Factory
      * @param JsonHelper                    $jsonHelper             JSON Helper.
+     * @param ContextInterface              $searchContext          Search Context.
+     * @param QueryFactory                  $queryFactory           Query Factory.
      */
     public function __construct(
         Context $context,
@@ -74,7 +88,9 @@ class Preview extends Action
         CategoryRepositoryInterface $categoryRepository,
         OptimizerInterfaceFactory $optimizerFactory,
         ContainerConfigurationFactory $containerConfigFactory,
-        JsonHelper $jsonHelper
+        JsonHelper $jsonHelper,
+        ContextInterface $searchContext,
+        QueryFactory $queryFactory
     ) {
         parent::__construct($context);
 
@@ -83,6 +99,8 @@ class Preview extends Action
         $this->previewModelFactory    = $previewModelFactory;
         $this->containerConfigFactory = $containerConfigFactory;
         $this->jsonHelper             = $jsonHelper;
+        $this->searchContext          = $searchContext;
+        $this->queryFactory           = $queryFactory;
     }
 
     /**
@@ -91,7 +109,7 @@ class Preview extends Action
     public function execute()
     {
         $responseData = $this->getPreviewObject()->getData();
-        $json         = $this->jsonHelper->jsonEncode($responseData);
+        $json         = $this->jsonHelper->serialize($responseData);
 
         $this->getResponse()->representJson($json);
     }
@@ -143,6 +161,8 @@ class Preview extends Action
         $ruleConditionPost = $this->getRequest()->getParam('rule_condition', []);
         $optimizer->getRuleCondition()->loadPost($ruleConditionPost);
 
+        $this->searchContext->setStoreId($optimizer->getStoreId());
+
         return $optimizer;
     }
 
@@ -159,6 +179,7 @@ class Preview extends Action
 
         if ($this->getCategoryId()) {
             $category = $this->categoryRepository->get($categoryId, $storeId);
+            $this->searchContext->setCurrentCategory($category);
         }
 
         return $category;
@@ -201,6 +222,11 @@ class Preview extends Action
 
         if (trim($queryText) == '') {
             $queryText = null;
+        }
+
+        if (null !== $queryText) {
+            $query = $this->queryFactory->create()->loadByQueryText($queryText);
+            $this->searchContext->setCurrentSearchQuery($query);
         }
 
         return $queryText;
