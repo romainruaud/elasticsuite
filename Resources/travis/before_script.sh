@@ -6,10 +6,10 @@ trap '>&2 echo Error: Command \`$BASH_COMMAND\` on line $LINENO failed with exit
 mkdir -p "$HOME/.php-cs-fixer"
 
 # go into the parent folder and pull a full magento 2 ce project, to do all tests.
-echo "==> Installing Magento 2 CE (Version $magento) over composer create-project ..."
+echo "==> Installing Magento 2 $edition (Version $magento) over composer create-project ..."
 cd ..
-composer create-project "magento/community-edition:$magento" magento-ce
-cd "magento-ce"
+composer create-project "magento/$edition:$version" magento
+cd "magento"
 
 # require the elasticsuite extension to make it usable (autoloading)
 echo "==> Requiring smile/elasticsuite from the dev-$TRAVIS_BRANCH branch"
@@ -17,7 +17,7 @@ composer require "smile/elasticsuite:dev-$TRAVIS_BRANCH"
 
 echo "==> Installing Magento 2"
 mysql -uroot -e 'CREATE DATABASE magento2;'
-php bin/magento setup:install -q --admin-user="admin" --admin-password="123123q" --admin-email="admin@example.com" --admin-firstname="John" --admin-lastname="Doe" --db-name="magento2"
+php bin/magento setup:install -q --admin-user="admin" --admin-password="smile" --admin-email="admin@example.com" --admin-firstname="Admin" --admin-lastname="Smile" --db-name="magento2"
 
 echo "==> Copying the current build to the Magento 2 installation."
 cp -R ../magento2/* vendor/smile/elasticsuite/
