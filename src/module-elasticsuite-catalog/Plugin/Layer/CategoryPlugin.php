@@ -54,7 +54,9 @@ class CategoryPlugin
         \Magento\Catalog\Model\Layer\Category $layer,
         \Magento\Catalog\Api\Data\CategoryInterface $category
     ) {
-        $this->searchContext->setCurrentCategory($category);
+        if (!$this->searchContext->getCurrentCategory()) {
+            $this->searchContext->setCurrentCategory($category);
+        }
 
         return $category;
     }

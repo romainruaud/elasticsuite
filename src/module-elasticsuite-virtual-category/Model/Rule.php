@@ -220,7 +220,7 @@ class Rule extends \Smile\ElasticsuiteCatalogRule\Model\Rule implements VirtualR
      *
      * @return CategoryInterface|null
      */
-    private function getVirtualRootCategory(CategoryInterface $category): ?CategoryInterface
+    public function getVirtualRootCategory(CategoryInterface $category): ?CategoryInterface
     {
         $storeId      = $this->getStoreId();
         $rootCategory = $this->categoryFactory->create()->setStoreId($storeId);

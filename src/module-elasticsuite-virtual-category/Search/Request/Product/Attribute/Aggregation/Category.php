@@ -95,6 +95,19 @@ class Category implements AggregationInterface
     {
         $category = $this->context->getCurrentCategory();
 
+        if (!$this->context->getCurrentSearchQuery()) {
+            if ($category && $category->getIsVirtualCategory() && !empty($category->getVirtualCategoryRoot())) {
+                try {
+                    $category = $this->categoryRepository->get(
+                        $category->getVirtualCategoryRoot(),
+                        $this->storeManager->getStore()->getId()
+                    );
+                } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
+                    ; // Do nothing.
+                }
+            }
+        }
+
         if (null === $category) {
             $category = $this->categoryRepository->get(
                 $this->storeManager->getStore()->getRootCategoryId(),
