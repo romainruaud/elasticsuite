@@ -553,4 +553,33 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Smile\ElasticsuiteCore\Setup\ConfigOptionsList">
+        <arguments>
+            <argument name="fallbackMapping" xsi:type="array">
+                <item name="es-user" xsi:type="string">elasticsearch-username</item>
+                <item name="es-pass" xsi:type="string">elasticsearch-password</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Smile\ElasticsuiteCore\Setup\Validator">
+        <arguments>
+            <!-- Client need to be injected as a proxy here, because it should be instantiated just-in-time before pinging, to ensure configuration is set -->
+            <argument name="client" xsi:type="object">\Smile\ElasticsuiteCore\Api\ClientInterface\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Search\Model\SearchEngine\Validator">
+        <arguments>
+            <argument name="engineValidators" xsi:type="array">
+                <item name="elasticsuite" xsi:type="object">Smile\ElasticsuiteCore\Setup\Validator</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Setup\Model\SearchConfigOptionsList">
+        <plugin name="addElasticsuiteToAuthorizedSearchEngines" type="Smile\ElasticsuiteCore\Plugin\Setup\SearchConfigOptionsListPlugin"/>
+    </type>
+
 </config>

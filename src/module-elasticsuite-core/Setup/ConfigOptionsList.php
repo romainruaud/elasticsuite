@@ -56,13 +56,20 @@ class ConfigOptionsList implements ConfigOptionsListInterface
     private $clientBuilder;
 
     /**
+     * @var array 
+     */
+    private $fallbackMapping;
+
+    /**
      * Constructor.
      *
-     * @param \Smile\ElasticsuiteCore\Client\ClientBuilder $clientBuilder ES client builder.
+     * @param \Smile\ElasticsuiteCore\Client\ClientBuilder $clientBuilder   ES client builder.
+     * @param array                                        $fallbackMapping Fallback Mapping for configuration.
      */
-    public function __construct(\Smile\ElasticsuiteCore\Client\ClientBuilder $clientBuilder)
+    public function __construct(\Smile\ElasticsuiteCore\Client\ClientBuilder $clientBuilder, $fallbackMapping = [])
     {
-        $this->clientBuilder = $clientBuilder;
+        $this->clientBuilder   = $clientBuilder;
+        $this->fallbackMapping = $fallbackMapping;
     }
 
     /**
@@ -146,7 +153,7 @@ class ConfigOptionsList implements ConfigOptionsListInterface
 
         if (isset($options[self::INPUT_KEY_ES_HOSTS]) || $deploymentConfig->get(self::CONFIG_PATH_ES_HOSTS)) {
             $clientOptions = [
-                'servers'           => $this->readConfiguration($options, $deploymentConfig, self::INPUT_KEY_ES_HOSTS),
+                'servers'           => $this->getServers($options, $deploymentConfig),
                 'enable_https_mode' => $this->readConfiguration($options, $deploymentConfig, self::INPUT_KEY_ES_SSL),
                 'http_auth_user'    => (string) $this->readConfiguration($options, $deploymentConfig, self::INPUT_KEY_ES_USER),
                 'http_auth_pwd'     => (string) $this->readConfiguration($options, $deploymentConfig, self::INPUT_KEY_ES_PASS),
@@ -155,7 +162,33 @@ class ConfigOptionsList implements ConfigOptionsListInterface
             $clientOptions['enable_http_auth'] = !empty($clientOptions['http_auth_user']) && !empty($clientOptions['http_auth_pwd']);
         }
 
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/rorua.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info(print_r($options, true));
+        $logger->info(print_r($clientOptions, true));
+
         return $clientOptions;
+    }
+
+    /**
+     * Get servers configuration. We try to fetch them from our own "es-hosts" parameters but allow a fallback to
+     * Magento parameters "elasticsearch-host" and "elasticsearch-port".
+     *
+     * @param array            $options          Input options.
+     * @param DeploymentConfig $deploymentConfig Deployment config.
+     *
+     * @return mixed|string|null
+     */
+    private function getServers($options, DeploymentConfig $deploymentConfig)
+    {
+        $servers = $this->readConfiguration($options, $deploymentConfig, self::INPUT_KEY_ES_HOSTS);
+
+        if ((null === $servers) && isset($inputOptions['elasticsearch-host']) && isset($inputOptions['elasticsearch-port'])) {
+            $servers = sprintf('%s:%s', $inputOptions['elasticsearch-host'], $inputOptions['elasticsearch-port']);
+        }
+
+        return $servers;
     }
 
     /**
@@ -175,9 +208,24 @@ class ConfigOptionsList implements ConfigOptionsListInterface
         if ($option) {
             $configPath = $option->getConfigPath($inputKey);
             $config = $options[$inputKey] ?? ($configPath != null ? $deploymentConfig->get($configPath) : $option->getDefault());
+
+            if (!$config) {
+                $config = $this->getFallback($inputKey);
+            }
         }
 
         return $config;
+    }
+
+    /**
+     * Try to fallback from Elasticsuite configuration parameters to Magento's legacy parameters.
+     *
+     * @param string $inputKey The input parameter
+     * @param array  $options  The current install options
+     */
+    private function getFallback($inputKey, $options)
+    {
+
     }
 
     /**

@@ -1,20 +1,46 @@
 <?php
-
+/**
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile ElasticSuite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile\ElasticsuiteCore
+ * @author    Romain Ruaud <romain.ruaud@smile.fr>
+ * @copyright 2021 Smile
+ * @license   Open Software License ("OSL") v. 3.0
+ */
 
 namespace Smile\ElasticsuiteCore\Setup;
-
 
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Search\Setup\InstallConfigInterface;
 use Magento\Setup\Model\SearchConfigOptionsList;
 
+/**
+ * Installer Configuration
+ *
+ * @category Smile
+ * @package  Smile\ElasticsuiteCore
+ * @author   Romain Ruaud <romain.ruaud@smile.fr>
+ */
 class InstallConfig implements InstallConfigInterface
 {
+    /**
+     * Catalog search parameters
+     */
     private const CATALOG_SEARCH = 'catalog/search/';
 
-    private const ES_CLIENT      = 'smile_elasticsuite_core_base_settings/es_client/';
+    /**
+     * Elasticsearch client parameters
+     */
+    private const ES_CLIENT = 'smile_elasticsuite_core_base_settings/es_client/';
 
-    private const ES_INDICES     = 'smile_elasticsuite_core_base_settings/indices_settings/';
+    /**
+     * Elasticsearch indices parameters
+     */
+    private const ES_INDICES = 'smile_elasticsuite_core_base_settings/indices_settings/';
 
     /**
      * @var array
@@ -24,13 +50,27 @@ class InstallConfig implements InstallConfigInterface
     ];
 
     /**
+     * @var array
+     */
+    private $legacyClientMapping = [];
+
+    /**
+     * @var array
+     */
+    private $legacyIndicesMapping = [];
+
+    /**
      * @var WriterInterface
      */
     private $configWriter;
 
     /**
-     * @param WriterInterface $configWriter
-     * @param array $searchConfigMapping
+     * Constructor
+     *
+     * @param WriterInterface $configWriter         Config Writer
+     * @param array           $searchConfigMapping  Search Config Mapping
+     * @param array           $legacyClientMapping  Legacy Elasticsearch implementation mapping
+     * @param array           $legacyIndicesMapping Legacy Elasticsearch indices mapping
      */
     public function __construct(
         WriterInterface $configWriter,
@@ -58,15 +98,15 @@ class InstallConfig implements InstallConfigInterface
                 $configKey = $this->legacyClientMapping[$inputKey];
                 $this->configWriter->save(self::ES_CLIENT . $configKey, $inputValue);
             }
-            if (null !== $inputValue && (isset($this->legacyClientMapping[$inputKey]))) {
-                $configKey = $this->legacyClientMapping[$inputKey];
+            if (null !== $inputValue && (isset($this->legacyIndicesMapping[$inputKey]))) {
+                $configKey = $this->legacyIndicesMapping[$inputKey];
                 $this->configWriter->save(self::ES_INDICES . $configKey, $inputValue);
             }
         }
 
         if (isset($inputOptions['elasticsearch-host']) && isset($inputOptions['elasticsearch-port'])) {
             $esHosts = sprintf('%s:%s', $inputOptions['elasticsearch-host'], $inputOptions['elasticsearch-port']);
-            $this->configWriter->save(self::ES_CLIENT . 'es-hosts', $inputValue);
+            $this->configWriter->save(self::ES_CLIENT . 'servers', $esHosts);
         }
     }
 }
