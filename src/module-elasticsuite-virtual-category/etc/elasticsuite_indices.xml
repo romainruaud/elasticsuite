@@ -27,4 +27,19 @@
         </type>
     </index>
 
+    <index identifier="virtual_category" defaultSearchType="_doc">
+        <type name="_doc" idFieldName="_category.id">
+            <mapping>
+                <!-- Static fields handled by the base indexer (not datasource) -->
+                <field name="_category.id" type="integer" />
+                <!-- the field cannot be simply "name" because it is already used in the "product" index type -->
+                <field name="_category.name" type="text" />
+
+                <!-- Static fields handled by the "percolator" datasource -->
+                <field name="_category.percolator_type" type="text" />
+                <field name="_category.query" type="percolator" />
+            </mapping>
+        </type>
+    </index>
+
 </indices>

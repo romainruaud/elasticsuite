@@ -227,4 +227,41 @@
             <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
         </arguments>
     </type>
+
+    <!-- BEGIN : Virtual Categories Percolation -->
+    <!-- Virtual Categories Percolation : ES index handler declaration -->
+    <virtualType name="virtualCategoriesPercolateIndexHandler" type="\Smile\ElasticsuiteCore\Indexer\GenericIndexerHandler">
+        <arguments>
+            <argument name="indexName" xsi:type="const">Smile\ElasticsuiteVirtualCategory\Model\Indexer\VirtualCategory\Percolator::INDEX_IDENTIFIER</argument>
+            <argument name="typeName" xsi:type="string">_doc</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Virtual Categories Percolation : ES indexer declaration -->
+    <type name="Smile\ElasticsuiteVirtualCategory\Model\Indexer\VirtualCategory\Percolator">
+        <arguments>
+            <argument name="indexerHandler" xsi:type="object">virtualCategoriesPercolateIndexHandler</argument>
+        </arguments>
+    </type>
+
+    <!-- Since ES 5, indices containing percolator queries should have a mapping
+     which reflects the mapping of the index you wanna percolate query against -->
+    <type name="Smile\ElasticsuiteCore\Api\Index\IndexOperationInterface">
+        <plugin name="merge_virtual_categories_percolator_mapping"
+                type="Smile\ElasticsuiteVirtualCategory\Plugin\Index\IndexOperation"/>
+    </type>
+
+    <!-- Datasources resolver -->
+    <type name="Smile\ElasticsuiteCore\Index\DataSourceResolver">
+        <arguments>
+            <argument name="datasources" xsi:type="array">
+                <item name="virtual_category" xsi:type="array">
+                    <item name="percolator" xsi:type="object">Smile\ElasticsuiteVirtualCategory\Model\Indexer\VirtualCategory\Percolator\Datasource\PercolatorData</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- /END : Virtual Categories Percolation -->
+
 </config>
