@@ -16,14 +16,22 @@
             portalId: "6113121",
             formId: "1b10ec2f-3de4-4a17-b1f5-3826361fadf1",
             onFormReady: function(form) {
-                let input = form.find(".hs-input");
-                if (input !== undefined) {
-                    input.val("%s");
+                let email = form.find(\'input[name="email"]\');
+
+                if (email !== undefined) {
+                    email.val("%s");
+                    email.click();
+                }
+                let country = form.find(\'select[name="pays_pour_form"]\');
+
+                if (country !== undefined) {
+                    country.val("%s");
+                    country.click();
                 }
             }
           });
         });
 
         document.head.append(script);
-      })();', $block->getEmail()), false) ?>
+      })();', $block->getEmail(), $block->getCountry()), false) ?>
 </div>
