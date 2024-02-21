@@ -175,6 +175,38 @@
             <encoder>beider_morse</encoder>
             <languageset>french</languageset>
         </filter>
+        <filter name="phonetic" type="phonetic" language="es">
+            <encoder>beider_morse</encoder>
+            <languageset>spanish</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="de">
+            <encoder>beider_morse</encoder>
+            <languageset>german</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="ru">
+            <encoder>beider_morse</encoder>
+            <languageset>russian</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="po">
+            <encoder>beider_morse</encoder>
+            <languageset>polish</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="hu">
+            <encoder>beider_morse</encoder>
+            <languageset>hungarian</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="ro">
+            <encoder>beider_morse</encoder>
+            <languageset>romanian</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="it">
+            <encoder>beider_morse</encoder>
+            <languageset>italian</languageset>
+        </filter>
+        <filter name="phonetic" type="phonetic" language="pt">
+            <encoder>beider_morse</encoder>
+            <languageset>portuguese</languageset>
+        </filter>
         <filter name="lowercase" type="lowercase" language="el">
             <language>greek</language>
         </filter>
