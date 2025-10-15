@@ -33,7 +33,7 @@ class ConstantScore implements ApplierInterface
     {
         $queryName = sprintf('Optimizer [%s]:%d', $optimizer->getName(), $optimizer->getId());
         $query     = $optimizer->getRuleCondition()->getSearchQuery();
-        $query->setName(($query->getName() !== '') ? $queryName . " => " . $query->getName() : $queryName);
+        //$query->setName(($query->getName() !== '') ? $queryName . " => " . $query->getName() : $queryName);
 
         $function = [
             'weight' => 1 + ((float) $optimizer->getConfig('constant_score_value') / 100),

@@ -99,7 +99,7 @@ class QueryBuilder
                 $queryParams = ['field' => $this->getSearchFieldName($productCondition)];
             }
 
-            $query = $this->prepareQuery($queryType, $queryParams)->setName($productCondition->asString());
+            $query = $this->prepareQuery($queryType, $queryParams)/*->setName($productCondition->asString())*/;
 
             if (substr($productCondition->getOperator(), 0, 1) === '!') {
                 $query = $this->applyNegation($query);
@@ -122,7 +122,7 @@ class QueryBuilder
                 }
 
                 $query = $this->queryFactory->create(QueryInterface::TYPE_NESTED, $nestedQueryParams);
-                $query->setName($productCondition->asString());
+                //$query->setName($productCondition->asString());
             }
         }
 

@@ -82,11 +82,11 @@ class QueryBuilder
             $query = $this->queryFactory->create(QueryInterface::TYPE_BOOL, ['should' => $queries, 'boost' => $boost]);
         } elseif ($spellingType == SpellcheckerInterface::SPELLING_TYPE_PURE_STOPWORDS) {
             $query = $this->getPureStopwordsQuery($containerConfig, $queryText, $boost);
-            $query->setName('PURE_STOPWORDS');
+            //$query->setName('PURE_STOPWORDS');
         } elseif (in_array($spellingType, $fuzzySpellingTypes)) {
             $query = $this->getSpellcheckedQuery($containerConfig, $queryText, $spellingType, $boost);
             if ($query !== null) {
-                $query->setName('SPELLCHECK');
+                //$query->setName('SPELLCHECK');
             }
         }
 
@@ -97,13 +97,13 @@ class QueryBuilder
                 'boost'  => $boost,
             ];
             $query = $this->queryFactory->create(QueryInterface::TYPE_FILTER, $queryParams);
-            $query->setName('EXACT');
+            //$query->setName('EXACT');
 
             $relevanceConfig = $containerConfig->getRelevanceConfig();
             if ($relevanceConfig->getSpanMatchBoost()) {
                 $spanQuery = $this->getSpanQuery($containerConfig, $queryText, $relevanceConfig->getSpanMatchBoost());
                 if ($spanQuery !== null) {
-                    $spanQuery->setName('SPAN');
+                    //$spanQuery->setName('SPAN');
                     $queryParams = [
                         'must'      => [$query],
                         'should'    => [$spanQuery],
@@ -252,11 +252,11 @@ class QueryBuilder
         $queryClauses = [];
 
         if ($relevanceConfig->isFuzzinessEnabled()) {
-            $queryClauses[] = $this->getFuzzyQuery($containerConfig, $queryText)->setName('FUZZY');
+            $queryClauses[] = $this->getFuzzyQuery($containerConfig, $queryText)/*->setName('FUZZY')*/;
         }
 
         if ($relevanceConfig->isPhoneticSearchEnabled()) {
-            $queryClauses[] = $this->getPhoneticQuery($containerConfig, $queryText)->setName('PHONETIC');
+            $queryClauses[] = $this->getPhoneticQuery($containerConfig, $queryText)/*->setName('PHONETIC')*/;
         }
 
         if (!empty($queryClauses)) {
